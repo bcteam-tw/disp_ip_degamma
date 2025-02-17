@@ -1,0 +1,5 @@
+reg_degma_en:1
+ro_degma_crc_g:0
+ro_degma_crc:0
+reg_degma_253:0xfb2
+reg_degma_254:0xfd9
