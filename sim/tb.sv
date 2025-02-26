@@ -92,15 +92,16 @@ initial begin
 	degamma_en=1;	
 	
 	rstn = 1;
+	#P;
 	clk = 0;
-
 	#P;
 	rstn = 0;
+	
+	@(posedge clk);
+
 	#P;
 	rstn = 1;
 	#P;	
-	
-	@(posedge clk);
 	
 	for(frame_i=0;frame_i<(TOTAL_FRAME);frame_i=frame_i+1)begin	
 		case(frame_i)
@@ -146,7 +147,7 @@ initial begin
 		@(posedge dut_vsync_out);		// wait until positive edge of vsync_out
 		
 		case(frame_o)
-		    0: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/colorchecker_12b_out_36x24.ppm"}  ; u_output_saver.ppm_filename = {base_dir, "outputs/output_colorchecker_24x36_12b.ppm"};  end
+		    0: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/colorchecker_12b_out_36x24.ppm"};      u_output_saver.ppm_filename = {base_dir, "outputs/output_colorchecker_24x36_12b.ppm"};  end
 		    //1: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/test_12b_out.ppm"} ; u_output_saver.ppm_filename = {base_dir, "outputs/output_colorchecker2_24x48_10b.ppm"}; end
 		    //2: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_trump_18x36.ppm"}         ; u_output_saver.ppm_filename = {base_dir, "outputs/output_trump_24x48_10b.ppm"};         end
 		    //3: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker_H_0.ppm"}	  ; u_output_saver.ppm_filename = {base_dir, "outputs/output_colorchecker_24x48_10b.ppm"};  end
