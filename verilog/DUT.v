@@ -49,9 +49,6 @@ input			            de_in;
 input [IN_DW-1:0]           r_in;
 input [IN_DW-1:0]           g_in;
 input [IN_DW-1:0]           b_in;
-
-
-							
 input                       reg_degamma_en;
 							
 output reg			        vsync_out;
@@ -60,9 +57,13 @@ output reg [OUT_DW-1:0]	    r_out;
 output reg [OUT_DW-1:0]	    g_out;
 output reg [OUT_DW-1:0]	    b_out;
 
-reg  [OUT_DW:0]             sel_r;
-reg  [OUT_DW:0]             sel_g;
-reg  [OUT_DW:0]             sel_b;
+reg  [IN_DW-1:0]            sel_r;
+reg  [IN_DW-1:0]            sel_g;
+reg  [IN_DW-1:0]            sel_b;
+							
+reg  [IN_DW-1:0]            sel_r2;
+reg  [IN_DW-1:0]            sel_g2;
+reg  [IN_DW-1:0]            sel_b2;
 						        
 reg  [OUT_DW:0]             tempR_value;
 reg  [OUT_DW:0]             tempG_value;
@@ -105,227 +106,195 @@ reg						    de_d2;
 reg						    vs_d3;
 reg						    de_d3;
 						    
+reg						    vs_d4;
+reg						    de_d4;
 						    
-reg [HCNT_BW-1:0]		    h_cnt;
-reg [VCNT_BW-1:0]		    v_cnt;
+//reg [HCNT_BW-1:0]		    h_cnt;
+//reg [VCNT_BW-1:0]		    v_cnt;
 
 wire vsync_in_pulse;
 wire vsync_out_pulse;
 
-wire hv_vs;
-wire hv_de;
+//wire hv_vs;
+//wire hv_de;
 reg  hv_enable;
 
-reg out_hv_vs_d;
-reg out_hv_vs_d2;
-reg out_hv_vs_d3;
-reg out_hv_de_d;
-reg out_hv_de_d2;
-reg out_hv_de_d3;
-
 // 1st pipeline ======================================================//
-always@(*)begin
-    if (reg_degamma_en && (de_in || de_d1)) begin
-        sel_r      <= r_in;
-        sel_g      <= g_in;
-        sel_b      <= b_in;
-        lutr_a_en<= 1'b0;	
-        lutr_b_en<= 1'b0;
-        lutg_a_en<= 1'b0;	
-        lutg_b_en<= 1'b0;
-        lutb_a_en<= 1'b0;	
-        lutb_b_en<= 1'b0;				
+always@(posedge clk or negedge rstn)begin 
+    if(~rstn)begin
+        lutr_a_en   <= 1'b1;
+        lutr_b_en   <= 1'b1;
+        lutg_a_en   <= 1'b1;
+        lutg_b_en   <= 1'b1;
+        lutb_a_en   <= 1'b1;
+        lutb_b_en   <= 1'b1;
+				    
+        lutr_a_adr  <= 'd0;
+  	    lutr_b_adr  <= 'd0;
+        lutg_a_adr  <= 'd0;
+  	    lutg_b_adr  <= 'd0;
+        lutb_a_adr  <= 'd0;
+  	    lutb_b_adr  <= 'd0;
+				    
+        sel_r       <= 'd0;
+        sel_g       <= 'd0;
+        sel_b       <= 'd0;				    
+        sel_r2      <= 'd0;
+        sel_g2      <= 'd0;
+        sel_b2      <= 'd0;
+				   		
+    end else if (reg_degamma_en && (de_in || de_d1 || de_d2)) begin
+        sel_r       <= r_in;
+        sel_g       <= g_in;
+        sel_b       <= b_in;
+        sel_r2      <= sel_r;
+        sel_g2      <= sel_g;
+        sel_b2      <= sel_b;
+				    
+        lutr_a_en   <= 1'b0;	
+        lutr_b_en   <= 1'b0;
+        lutg_a_en   <= 1'b0;	
+        lutg_b_en   <= 1'b0;
+        lutb_a_en   <= 1'b0;	
+        lutb_b_en   <= 1'b0;				
+		
         if(r_in[IN_DW-1:1]<'d126) begin
 	    	if(r_in[1:0]=='d0) begin
-                lutr_a_adr <= (r_in>>2);//r_in[IN_DW-1:2];
-                // lutr_a_en<= 1'b0;	
-                // lutr_b_en<= 1'b1;
+                lutr_a_adr <= (r_in>>2);
 	    	end else if (r_in[1:0]=='d1) begin
-                lutr_a_adr <= (r_in>>2);//r_in[IN_DW-1:2];
-  	            lutr_b_adr <= (r_in>>2);//r_in[IN_DW-1:2];
-                // lutr_a_en<= 1'b0;
-                // lutr_b_en<= 1'b0;
+                lutr_a_adr <= (r_in>>2);
+  	            lutr_b_adr <= (r_in>>2);
 	    	end else if (r_in[1:0]=='d2) begin
-  	            lutr_b_adr <= (r_in>>2);//r_in[IN_DW-1:2];
-                // lutr_a_en<= 1'b1;
-                // lutr_b_en<= 1'b0;
+  	            lutr_b_adr <= (r_in>>2);
             end	else begin
-                lutr_a_adr <= (r_in>>2)+1;//r_in[IN_DW-1:2]+1;
-  	            lutr_b_adr <= (r_in>>2);//r_in[IN_DW-1:2];
-                // lutr_a_en<= 1'b0;
-                // lutr_b_en<= 1'b0;
+                lutr_a_adr <= (r_in>>2)+1;
+  	            lutr_b_adr <= (r_in>>2);
 	    	end				
 	    end else if (r_in=='d252) begin
                 lutr_a_adr <= 'd63;
-                // lutr_a_en<= 1'b0;	
-                // lutr_b_en<= 1'b1;
 	    end else if (r_in=='d253) begin
   	            lutr_b_adr <= 'd63;
-                // lutr_a_en<= 1'b1;
-                // lutr_b_en<= 1'b0;
 	    end else if (r_in=='d254) begin
                 lutr_a_adr <= 'd64;
-                // lutr_a_en<= 1'b0;	
-                // lutr_b_en<= 1'b1;
 	    end else begin
   	            lutr_b_adr <= 'd64;
-                // lutr_a_en<= 1'b1;
-                // lutr_b_en<= 1'b0;	
 	    end
 
         if(g_in[IN_DW-1:1]<'d126) begin
 	    	if(g_in[1:0]=='d0) begin
-                lutg_a_adr <= (g_in>>2);//[IN_DW-1:2];
-                // lutg_a_en<= 1'b0;	
-                // lutg_b_en<= 1'b1;
+                lutg_a_adr <= (g_in>>2);
 	    	end else if (g_in[1:0]=='d1) begin
-                lutg_a_adr <= (g_in>>2);//[IN_DW-1:2];
-  	            lutg_b_adr <= (g_in>>2);//[IN_DW-1:2];
-                // lutg_a_en<= 1'b0;
-                // lutg_b_en<= 1'b0;
+                lutg_a_adr <= (g_in>>2);
+  	            lutg_b_adr <= (g_in>>2);
 	    	end else if (g_in[1:0]=='d2) begin
-  	            lutg_b_adr <= (g_in>>2);//[IN_DW-1:2];
-                // lutg_a_en<= 1'b1;
-                // lutg_b_en<= 1'b0;
+  	            lutg_b_adr <= (g_in>>2);
             end	else begin
                 lutg_a_adr <= (g_in>>2)+1;
   	            lutg_b_adr <= (g_in>>2);
-                // lutg_a_en<= 1'b0;
-                // lutg_b_en<= 1'b0;
 	    	end				
-	    end else if (g_in[IN_DW-1:0]=='d252) begin
+	    end else if (g_in=='d252) begin
                 lutg_a_adr <= 'd63;
-                // lutg_a_en<= 1'b0;	
-                // lutg_b_en<= 1'b1;
-	    end else if (g_in[IN_DW-1:0]=='d253) begin
+	    end else if (g_in=='d253) begin
   	            lutg_b_adr <= 'd63;
-                // lutg_a_en<= 1'b1;
-                // lutg_b_en<= 1'b0;
-	    end else if (g_in[IN_DW-1:0]=='d254) begin
+	    end else if (g_in=='d254) begin
                 lutg_a_adr <= 'd64;
-                // lutg_a_en<= 1'b0;	
-                // lutg_b_en<= 1'b1;
 	    end else begin
   	            lutg_b_adr <= 'd64;
-                // lutg_a_en<= 1'b1;
-                // lutg_b_en<= 1'b0;	
 	    end
 
         if(b_in[IN_DW-1:1]<'d126) begin
 	    	if(b_in[1:0]=='d0) begin
-                lutb_a_adr <= (b_in>>2);//[IN_DW-1:2];
-                // lutb_a_en<= 1'b0;	
-                // lutb_b_en<= 1'b1;
+                lutb_a_adr <= (b_in>>2);
 	    	end else if (b_in[1:0]=='d1) begin
-                lutb_a_adr <= (b_in>>2);//[IN_DW-1:2];
-  	            lutb_b_adr <= (b_in>>2);//[IN_DW-1:2];
-                // lutb_a_en<= 1'b0;
-                // lutb_b_en<= 1'b0;
+                lutb_a_adr <= (b_in>>2);
+  	            lutb_b_adr <= (b_in>>2);
 	    	end else if (b_in[1:0]=='d2) begin
-  	            lutb_b_adr <= (b_in>>2);//[IN_DW-1:2];
-                // lutb_a_en<= 1'b1;
-                // lutb_b_en<= 1'b0;
+  	            lutb_b_adr <= (b_in>>2);
             end	else begin
-                lutb_a_adr <= (b_in>>2)+1;//[IN_DW-1:2]+1;
-  	            lutb_b_adr <= (b_in>>2);//[IN_DW-1:2];
-                // lutb_a_en<= 1'b0;
-                // lutb_b_en<= 1'b0;
+                lutb_a_adr <= (b_in>>2)+1;
+  	            lutb_b_adr <= (b_in>>2);
 	    	end				
-	    end else if (b_in[IN_DW-1:0]=='d252) begin
+	    end else if (b_in=='d252) begin
                 lutb_a_adr <= 'd63;
-                // lutb_a_en<= 1'b0;	
-                // lutb_b_en<= 1'b1;
-	    end else if (b_in[IN_DW-1:0]=='d253) begin
+	    end else if (b_in=='d253) begin
   	            lutb_b_adr <= 'd63;
-                // lutb_a_en<= 1'b1;
-                // lutb_b_en<= 1'b0;
-	    end else if (b_in[IN_DW-1:0]=='d254) begin
+	    end else if (b_in=='d254) begin
                 lutb_a_adr <= 'd64;
-                // lutb_a_en<= 1'b0;	
-                // lutb_b_en<= 1'b1;
 	    end else begin
   	            lutb_b_adr <= 'd64;
-                // lutb_a_en<= 1'b1;
-                // lutb_b_en<= 1'b0;	
 	    end		
-	end else begin
-        lutr_a_en<= 1'b1;
-        lutr_b_en<= 1'b1;
-        lutg_a_en<= 1'b1;
-        lutg_b_en<= 1'b1;
-        lutb_a_en<= 1'b1;
-        lutb_b_en<= 1'b1;
-
-        lutr_a_adr <= 'd0;
-  	    lutr_b_adr <= 'd0;
-        lutg_a_adr <= 'd0;
-  	    lutg_b_adr <= 'd0;
-        lutb_a_adr <= 'd0;
-  	    lutb_b_adr <= 'd0;
-		
-        sel_r      <= 'd0;
-        sel_g      <= 'd0;
-        sel_b      <= 'd0;
 	end
 end
 
-// 1st pipeline ======================================================//
+always@(posedge clk or negedge rstn)begin
+	if(~rstn)begin
+		vs_d1				<= 1'b0;
+		de_d1				<= 1'b0;
+	
+	end else begin
+		vs_d1				<= vsync_in;
+		de_d1				<= de_in;
+	end
+		
+end
+
+// 2nd pipeline ======================================================//
 always@(posedge clk or negedge rstn)begin    
     if(~rstn)begin
 	    tempR_value <= 'd0;
 	    tempG_value <= 'd0;
 	    tempB_value <= 'd0;			
-    end else begin//if(de_in) begin
-        if (reg_degamma_en && (de_d1 || de_d2) ) begin            
-			if(sel_r[IN_DW-1:1]<'d126) begin			
-         		if(sel_r[1:0]=='d0) begin
+    end else begin
+        if (reg_degamma_en && (de_d1 || de_d2 || de_d3) ) begin            
+			if(sel_r2[IN_DW-1:1]<'d126) begin			
+				if(sel_r2[1:0]=='d0) begin
                     tempR_value <= lutr_a_q;
-				end else if (sel_r[1:0]=='d2) begin
+				end else if (sel_r2[1:0]=='d2) begin
                     tempR_value <= lutr_b_q;
 				end else begin
                     tempR_value <= ((lutr_a_q+lutr_b_q+1)>>1);
 				end				
-	    	end else if (sel_r[IN_DW-1:0]=='d252) begin
+	    	end else if (sel_r2=='d252) begin
                 tempR_value <= lutr_a_q;
-			end else if (sel_r[IN_DW-1:0]=='d253) begin
+			end else if (sel_r2=='d253) begin
                 tempR_value <= lutr_b_q;
-	    	end else if (sel_r[IN_DW-1:0]=='d254) begin
+	    	end else if (sel_r2=='d254) begin
                 tempR_value <= lutr_a_q;
 	    	end else begin
 			    tempR_value <= lutr_b_q;
 			end
 
-			if(sel_g[IN_DW-1:1]<'d126) begin			
-         		if(sel_g[1:0]=='d0) begin
+			if(sel_g2[IN_DW-1:1]<'d126) begin			
+				if(sel_g2[1:0]=='d0) begin
                     tempG_value <= lutg_a_q;
-				end else if (sel_g[1:0]=='d2) begin
+				end else if (sel_g2[1:0]=='d2) begin
                     tempG_value <= lutg_b_q;
 				end else begin
                     tempG_value <= ((lutg_a_q+lutg_b_q+1)>>1);
 				end				
-	    	end else if (sel_g[IN_DW-1:0]=='d252) begin
+	    	end else if (sel_g2=='d252) begin
                 tempG_value <= lutg_a_q;
-			end else if (sel_g[IN_DW-1:0]=='d253) begin
+			end else if (sel_g2=='d253) begin
                 tempG_value <= lutg_b_q;
-	    	end else if (sel_g[IN_DW-1:0]=='d254) begin
+	    	end else if (sel_g2=='d254) begin
                 tempG_value <= lutg_a_q;
 	    	end else begin
 			    tempG_value <= lutg_b_q;
 			end
 			
-			if(sel_b[IN_DW-1:1]<'d126) begin			
-         		if(sel_b[1:0]=='d0) begin
+			if(sel_b2[IN_DW-1:1]<'d126) begin			
+				if(sel_b2[1:0]=='d0) begin
                     tempB_value <= lutb_a_q;
-				end else if (sel_b[1:0]=='d2) begin
+				end else if (sel_b2[1:0]=='d2) begin
                     tempB_value <= lutb_b_q;
 				end else begin
                     tempB_value <= ((lutb_a_q+lutb_b_q+1)>>1);
 				end				
-	    	end else if (sel_b[IN_DW-1:0]=='d252) begin
+	    	end else if (sel_b2=='d252) begin
                 tempB_value <= lutb_a_q;
-			end else if (sel_b[IN_DW-1:0]=='d253) begin
+			end else if (sel_b2=='d253) begin
                 tempB_value <= lutb_b_q;
-	    	end else if (sel_b[IN_DW-1:0]=='d254) begin
+	    	end else if (sel_b2=='d254) begin
                 tempB_value <= lutb_a_q;
 	    	end else begin
 			    tempB_value <= lutb_b_q;
@@ -341,25 +310,23 @@ end
 
 always@(posedge clk or negedge rstn)begin
 	if(~rstn)begin
-		vs_d1				<= 1'b0;
-		de_d1				<= 1'b0;
+		vs_d2				<= 1'b0;
+		de_d2				<= 1'b0;
 	
 	end else begin
-		vs_d1				<= vsync_in;
-		de_d1				<= de_in;
-        out_hv_vs_d		    <= hv_vs;
-        out_hv_de_d		    <= hv_de;
+		vs_d2				<= vs_d1;
+		de_d2				<= de_d1;	
 	end
 		
 end
 
-// 2nd pipeline ======================================================//
+// 3rd pipeline ======================================================//
 always@(posedge clk or negedge rstn)begin
 	if(~rstn)begin
         r       <= 'd0;
         g       <= 'd0;
         b       <= 'd0;   
-	end else if(out_hv_de_d) begin			
+	end else if(reg_degamma_en && (de_d2 || de_d3 || de_d4)) begin			
         if (tempR_value<0) begin
             r <= 0;
 	    end else if (tempR_value>MAXIMUM) begin
@@ -388,14 +355,23 @@ end
 
 always@(posedge clk or negedge rstn)begin
 	if(~rstn)begin
-		vs_d2				<= 1'b0;
-		de_d2				<= 1'b0;
-	
+		vs_d3				<= 1'b0;
+		de_d3				<= 1'b0;	
 	end else begin
-		vs_d2				<= vs_d1;
-		de_d2				<= de_d1;	
-        out_hv_vs_d2		<= out_hv_vs_d;
-        out_hv_de_d2		<= out_hv_de_d;		
+		vs_d3				<= vs_d2;
+		de_d3				<= de_d2;	
+	end
+		
+end
+
+// 4th pipeline ======================================================//
+always@(posedge clk or negedge rstn)begin
+	if(~rstn)begin
+		vs_d4				<= 1'b0;
+		de_d4				<= 1'b0;	
+	end else begin
+		vs_d4				<= vs_d3;
+		de_d4				<= de_d3;	
 	end
 		
 end
@@ -415,8 +391,8 @@ end
 
 always@(*)begin
     if (reg_degamma_en) begin
-        vsync_out		<= vs_d2;
-        de_out			<= de_d2;
+        vsync_out		<= vs_d4;
+        de_out			<= de_d4;
         r_out			<= r;
         g_out			<= g;
         b_out			<= b;	
@@ -429,20 +405,6 @@ always@(*)begin
 	end
 
 end
-
-// always@(posedge clk or negedge rstn)begin
-	// if(~rstn)begin
-		// vs_d3				<= 1'b0;
-		// de_d3				<= 1'b0;
-	
-	// end else begin
-		// vs_d3				<= vs_d2;
-		// de_d3				<= de_d2;	
-        // out_hv_vs_d3		<= out_hv_vs_d2;
-        // out_hv_de_d3		<= out_hv_de_d2;		
-	// end
-		
-// end
 
 
 // --------------------------------------------------------------------
@@ -463,12 +425,12 @@ level_to_pulse u_vsync_out_d(
 );
 
 tcon_hvmode  u_hvmode(
-	.h_cnt							(h_cnt   		),
-	.v_cnt							(v_cnt	    	),
+	.h_cnt							(   		),
+	.v_cnt							(	    	),
 	
-	.vs_out							(hv_vs			),
+	.vs_out							(			),
 	.hs_out							(				),
-	.de_out							(hv_de			),
+	.de_out							(			),
 	
 	.clk							(clk			),
 	.rstn							(rstn			),

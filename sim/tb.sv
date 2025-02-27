@@ -12,20 +12,19 @@ module tb;
 parameter P					= 10;	// clock unit (10ns)
 parameter D					= 0.1;	// delay after clock positive edge
 
-parameter TOTAL_FRAME		= 1;
-parameter IN_WIDTH		    = 24;
-parameter IN_HEIGHT	        = 36;
-//parameter IN_WIDTH        = 1280;
-//parameter IN_HEIGHT       = 800;
+parameter TOTAL_FRAME		= 4;
+//parameter IN_WIDTH		    = 24;
+//parameter IN_HEIGHT	        = 36;
+parameter IN_WIDTH          = 1280;
+parameter IN_HEIGHT         = 800;
 		
-parameter OUT_WIDTH         = 24;
-parameter OUT_HEIGHT        = 36;
-//parameter OUT_WIDTH       = 1280;
-//parameter OUT_HEIGHT	    = 800;
+//parameter OUT_WIDTH         = 24;
+//parameter OUT_HEIGHT        = 36;
+parameter OUT_WIDTH         = 1280;
+parameter OUT_HEIGHT	    = 800;
 
 parameter IN_BW				= 8;
 parameter OUT_BW			= 12;
-//parameter SHIFT_IN_OUT    = 2;
 parameter MAXIMUM	        = 4095;
 
 parameter I_HSYNC_WIDTH		= 1;
@@ -105,14 +104,14 @@ initial begin
 	
 	for(frame_i=0;frame_i<(TOTAL_FRAME);frame_i=frame_i+1)begin	
 		case(frame_i)
-			0: begin u_input_gen.ppm_filename			= {base_dir, "inputs/colorchecker_8b_36x24.ppm"}; end	
+			//0: begin u_input_gen.ppm_filename			= {base_dir, "inputs/colorchecker_8b_36x24.ppm"}; end	
 			//1: begin u_input_gen.ppm_filename			= {base_dir, "inputs/test_in.ppm"};end		
 			//2: begin u_input_gen.ppm_filename			= {base_dir, "inputs/input_trump_24x48_10b.ppm"};        end		
 			//3: begin u_input_gen.ppm_filename			= {base_dir, "inputs/input_colorchecker_24x48.ppm"};     end			
-			//0: begin u_input_gen.ppm_filename			= {base_dir, "inputs/01Night_mount_1280x800_10b.ppm"};end	
-			//1: begin u_input_gen.ppm_filename			= {base_dir, "inputs/02Sea_side_1280x800_10b.ppm"};   end		
-			//2: begin u_input_gen.ppm_filename			= {base_dir, "inputs/03Win_desktop_1280x800_10b.ppm"};end		
-			//3: begin u_input_gen.ppm_filename			= {base_dir, "inputs/04Effel_tower_1280x800_10b.ppm"};end			
+			0: begin u_input_gen.ppm_filename			= {base_dir, "inputs/01Night_mount_1280x800_8b.ppm"};end	
+		    1: begin u_input_gen.ppm_filename			= {base_dir, "inputs/02Sea_side_1280x800_8b.ppm"};   end		
+			2: begin u_input_gen.ppm_filename			= {base_dir, "inputs/03Win_desktop_1280x800_8b.ppm"};end		
+			3: begin u_input_gen.ppm_filename			= {base_dir, "inputs/04Effel_tower_1280x800_8b.ppm"};end			
 			//4: begin u_input_gen.ppm_filename			= {base_dir, "inputs/05Dawn_lake_1280x800_12b.ppm"};end	
 			//5: begin u_input_gen.ppm_filename			= {base_dir, "inputs/06Mount_lake_1280x800_12b.ppm"};end		
 			//6: begin u_input_gen.ppm_filename			= {base_dir, "inputs/07Autumn_mount_1280x800_12b.ppm"};end		
@@ -147,14 +146,14 @@ initial begin
 		@(posedge dut_vsync_out);		// wait until positive edge of vsync_out
 		
 		case(frame_o)
-		    0: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/colorchecker_12b_out_36x24.ppm"};      u_output_saver.ppm_filename = {base_dir, "outputs/output_colorchecker_24x36_12b.ppm"};  end
+		    //0: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/colorchecker_12b_out_36x24.ppm"};      u_output_saver.ppm_filename = {base_dir, "outputs/output_colorchecker_24x36_12b.ppm"};  end
 		    //1: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/test_12b_out.ppm"} ; u_output_saver.ppm_filename = {base_dir, "outputs/output_colorchecker2_24x48_10b.ppm"}; end
 		    //2: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_trump_18x36.ppm"}         ; u_output_saver.ppm_filename = {base_dir, "outputs/output_trump_24x48_10b.ppm"};         end
 		    //3: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker_H_0.ppm"}	  ; u_output_saver.ppm_filename = {base_dir, "outputs/output_colorchecker_24x48_10b.ppm"};  end
-		    //0: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker_18x36.ppm"}      ; u_output_saver.ppm_filename = {base_dir, "outputs/01Night_mount_1280x800_10b_out_c124.ppm"};end
-		    //1: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker2_18x36.ppm"}     ; u_output_saver.ppm_filename = {base_dir, "outputs/02Sea_side_1280x800_10b_out_c124.ppm"};   end
-		    //2: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_trump_18x36.ppm"}             ; u_output_saver.ppm_filename = {base_dir, "outputs/03Win_desktop_1280x800_10b_out_c124.ppm"};end
-		    //3: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker_H_0.ppm"}	      ; u_output_saver.ppm_filename = {base_dir, "outputs/04Effel_tower_1280x800_10b_out_c124.ppm"};end
+		    0: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker_18x36.ppm"}      ; u_output_saver.ppm_filename = {base_dir, "outputs/01Night_mount_1280x800_12b_out.ppm"};end
+		    1: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker2_18x36.ppm"}     ; u_output_saver.ppm_filename = {base_dir, "outputs/02Sea_side_1280x800_12b_out.ppm"};   end
+		    2: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_trump_18x36.ppm"}             ; u_output_saver.ppm_filename = {base_dir, "outputs/03Win_desktop_1280x800_12b_out.ppm"};end
+		    3: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker_H_0.ppm"}	      ; u_output_saver.ppm_filename = {base_dir, "outputs/04Effel_tower_1280x800_12b_out.ppm"};end
 		    //4: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker_18x36.ppm"}      ; u_output_saver.ppm_filename = {base_dir, "outputs/05Dawn_lake_1280x800_12b.ppm"}; end
 		    //5: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_colorchecker2_18x36.ppm"}     ; u_output_saver.ppm_filename = {base_dir, "outputs/06Mount_lake_1280x800_12b.ppm"}; end
 		    //6: begin u_output_saver.ans_ppm_filename   = {base_dir, "ans/output_trump_18x36.ppm"}             ; u_output_saver.ppm_filename = {base_dir, "outputs/07Autumn_mount_1280x800_12b.ppm"}; end

@@ -1,8 +1,8 @@
 %% Read an ASCII ppm image
 directory_content = dir; % contains everything of the current directory
 mfilePath = directory_content(1).folder; % returns the path that is currently open
-save_img_full_path_name    =fullfile(mfilePath,'colorchecker_8b_36x24.ppm');
-%save_img_full_path_name    =fullfile(mfilePath,'02Sea_side_1280x800_10b.ppm');
+%save_img_full_path_name    =fullfile(mfilePath,'colorchecker_8b_36x24.ppm');
+save_img_full_path_name    =fullfile(mfilePath,'04Effel_tower_1280x800_8b.ppm');
 save_reg_full_path_name     =fullfile(mfilePath,'reg_degamma_setting_128.txt');
 save_degamma_full_path_name=fullfile(mfilePath,'reg_128_lut.txt');
 
@@ -44,8 +44,8 @@ imshow(dispImage2);
 title('Output image');
 
 %% save an ASCII ppm image
-save_img_full_path_name=fullfile(mfilePath,'colorchecker_12b_out_36x24.ppm');
-%save_img_full_path_name=fullfile(mfilePath,'02Sea_side_1280x800_10b_C70.ppm');
+%save_img_full_path_name=fullfile(mfilePath,'colorchecker_12b_out_36x24.ppm');
+save_img_full_path_name=fullfile(mfilePath,'04Effel_tower_1280x800_12b_out.ppm');
 
 save_ppm(save_img_full_path_name, outputimage, num_max_out);
 
